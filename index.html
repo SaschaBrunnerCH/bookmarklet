@@ -1,18 +1,72 @@
-<!doctype html>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>SceneView</title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
 
-<html lang="en">
-<head>
-  <meta charset="utf-8">
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.15/"></script>
 
-  <title>The HTML5 Herald</title>
-  <meta name="description" content="The HTML5 Herald">
-  <meta name="author" content="SitePoint">
+    <script>
+      require(["esri/layers/FeatureLayer", "esri/Map", "esri/WebScene", "esri/views/SceneView"], function (FeatureLayer, Map, WebScene, SceneView) {
+        let map;
 
-  <link rel="stylesheet" href="css/styles.css?v=1.0">
+        const urlParams = new URLSearchParams(window.location.search);
+        const webscene_fromquery = urlParams.get("webscene");
+        if (webscene_fromquery) {
+          let webscene = webscene_fromquery;
+          console.log("Loaded webscene: " + webscene_fromquery);
+          map = new WebScene({
+            portalItem: {
+              id: webscene,
+            },
+          });
+        } else {
+          const url_fromquery = urlParams.get("url");
+          if (url_fromquery) {
+            map = new Map({
+              basemap: "gray-vector",
+              ground: "world-elevation",
+              layers: [
+                new FeatureLayer({
+                  url: url_fromquery,
+                }),
+              ],
+            });
+          } else {
+            map = new Map({
+              basemap: "gray-vector",
+              ground: "world-elevation",
+            });
+          }
+        }
 
-</head>
+        let view = new SceneView({
+          container: "viewDiv",
+          map: map,
+        });
+      });
+    </script>
+  </head>
 
-<body>
-  <script src="/bookmarklet.js"></script>
-</body>
+  <body>
+    <div id="viewDiv"></div>
+  </body>
 </html>
