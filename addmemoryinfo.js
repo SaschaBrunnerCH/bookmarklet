@@ -1,33 +1,41 @@
-try {
-  require("esri/kernel");
-} catch (ex) {
-  throw new Error("no ArcGIS JS API page");
-}
-
 var viewGlobal;
-var arcgisjsversion = require("esri/kernel").version;
-if (versionCompare(arcgisjsversion, "4.0") == -1) {
-  throw new Error("ArcGIS JS API Version not supported: " + arcgisjsversion);
-}
+executeArcGISJSAPITool();
 
-if (typeof view == "object" && (view.type == "2d" || view.type == "3d")) {
-  console.log(
-    "view globally defined, ArcGIS JS API Version: " + arcgisjsversion
-  );
-  viewGlobal = view;
-} else {
-  console.log("ArcGIS JS API Version: " + arcgisjsversion);
-  if (versionCompare(arcgisjsversion, "4.11") == -1) {
+function executeArcGISJSAPITool(input) {
+    if(typeof input!='undefined'){
+        console.log("Script already added and executed.");
+        return false;
+    }
+  try {
+    require("esri/kernel");
+  } catch (ex) {
+    throw new Error("no ArcGIS JS API page");
+  }
+
+  var arcgisjsversion = require("esri/kernel").version;
+  if (versionCompare(arcgisjsversion, "4.0") == -1) {
+    throw new Error("ArcGIS JS API Version not supported: " + arcgisjsversion);
+  }
+
+  if (typeof view == "object" && (view.type == "2d" || view.type == "3d")) {
+    console.log(
+      "view globally defined, ArcGIS JS API Version: " + arcgisjsversion
+    );
+    viewGlobal = view;
+  } else {
+    console.log("ArcGIS JS API Version: " + arcgisjsversion);
+    if (versionCompare(arcgisjsversion, "4.11") == -1) {
+      throw new Error(
+        "Version is lower then 4.11 - no static view exist. Update the ArcGIS JS API or make view global."
+      );
+    }
+  }
+
+  if (versionCompare(arcgisjsversion, "4.15") == -1) {
     throw new Error(
-      "Version is lower then 4.11 - no static view exist. Update the ArcGIS JS API or make view global."
+      "Version is lower then 4.15 - function performanceInfo not supported in this Version"
     );
   }
-}
-
-if (versionCompare(arcgisjsversion, "4.15") == -1) {
-  throw new Error(
-    "Version is lower then 4.15 - function performanceInfo not supported in this Version"
-  );
 }
 
 /**

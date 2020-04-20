@@ -6,7 +6,7 @@
       name="viewport"
       content="initial-scale=1,maximum-scale=1,user-scalable=no"
     />
-    <title>SceneView</title>
+    <title>ArcGIS JS API Tool - Memory info panel</title>
     <style>
       html,
       body,
@@ -15,6 +15,15 @@
         margin: 0;
         height: 100%;
         width: 100%;
+      }
+
+      #infoDiv {
+        padding: 10px;
+        background-color: rgba(255, 255, 255, 0.8);
+      }
+
+      .esri-button {
+        margin: 2px;
       }
     </style>
 
@@ -25,48 +34,67 @@
     <script src="https://js.arcgis.com/4.15/"></script>
 
     <script>
-      require(["esri/layers/FeatureLayer", "esri/Map", "esri/WebScene", "esri/views/SceneView"], function (FeatureLayer, Map, WebScene, SceneView) {
-        let map;
+      require([
+        "esri/layers/FeatureLayer",
+        "esri/Map",
+        "esri/WebScene",
+        "esri/views/SceneView",
+      ], function (FeatureLayer, Map, WebScene, SceneView) {
+        let webscene;
 
         const urlParams = new URLSearchParams(window.location.search);
         const webscene_fromquery = urlParams.get("webscene");
+
         if (webscene_fromquery) {
           let webscene = webscene_fromquery;
-          console.log("Loaded webscene: " + webscene_fromquery);
-          map = new WebScene({
-            portalItem: {
-              id: webscene,
-            },
-          });
         } else {
-          const url_fromquery = urlParams.get("url");
-          if (url_fromquery) {
-            map = new Map({
-              basemap: "gray-vector",
-              ground: "world-elevation",
-              layers: [
-                new FeatureLayer({
-                  url: url_fromquery,
-                }),
-              ],
-            });
-          } else {
-            map = new Map({
-              basemap: "gray-vector",
-              ground: "world-elevation",
-            });
-          }
+          webscene = "711ddecedece4fd88b728bfe4322c22b";
         }
+        console.log("Loaded webscene: " + webscene);
+        map = new WebScene({
+          portalItem: {
+            id: webscene,
+          },
+        });
 
         let view = new SceneView({
           container: "viewDiv",
           map: map,
         });
+
+        view.ui.add("infoDiv", "top-right");
       });
     </script>
   </head>
 
   <body>
     <div id="viewDiv"></div>
+    <div id="infoDiv" class="esri-widget">
+      Add the memory info panel by clicking on the this button:<br /><br />
+      <button
+        id="memoryinfo"
+        class="esri-button"
+        onclick="javascript:(function(){if(typeof arcgisjsapi_addmemoryinfo_script=='undefined'){arcgisjsapi_addmemoryinfo_script=document.createElement('SCRIPT');arcgisjsapi_addmemoryinfo_script.type='text/javascript';arcgisjsapi_addmemoryinfo_script.src='https://saschabrunnerch.github.io/bookmarklet/addmemoryinfo.js?random='+(new Date()).getTime();document.getElementsByTagName('head')[0].appendChild(arcgisjsapi_addmemoryinfo_script);}else{executeArcGISJSAPITool(arcgisjsapi_addmemoryinfo_script);}})();">
+        Add memory info
+      </button>
+      <br />
+      Alternativly you are able to add this memory info panel in any
+      <br />ArcGIS JS API (>=4.15) page by using a
+      <a href="https://en.wikipedia.org/wiki/Bookmarklet">Bookmarklet</a>:<br /><br />
+      <a
+        id="bookmarklet"
+        href="javascript:(function(){if(typeof arcgisjsapi_addmemoryinfo_script=='undefined'){arcgisjsapi_addmemoryinfo_script=document.createElement('SCRIPT');arcgisjsapi_addmemoryinfo_script.type='text/javascript';arcgisjsapi_addmemoryinfo_script.src='https://saschabrunnerch.github.io/bookmarklet/bookmarklet/addmemoryinfo.js?random='+(new Date()).getTime();document.getElementsByTagName('head')[0].appendChild(arcgisjsapi_addmemoryinfo_script);}else{executeArcGISJSAPITool(arcgisjsapi_addmemoryinfo_script);}})();"
+      >
+        <img
+          id="install_button"
+          src="./bookmarklet-button.png"
+          alt="ArcGISTool-Add memory infopanel"
+          sizes="400x32"
+        />
+      </a>
+      <br>
+      <br>
+      Open another Webscene by adding the querystring to the url: <br>
+      <pre>index.html?webscene=&lt;id&gt;</pre> (id: webscene-portal-item-id)    </div>
   </body>
 </html>
