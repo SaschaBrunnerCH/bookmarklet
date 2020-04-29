@@ -2,10 +2,10 @@ var viewGlobal;
 executeArcGISJSAPITool();
 
 function executeArcGISJSAPITool(input) {
-    if(typeof input!='undefined'){
-        console.log("Script already added and executed.");
-        return false;
-    }
+  if (typeof input != "undefined") {
+    console.log("Script already added and executed.");
+    return false;
+  }
   try {
     require("esri/kernel");
   } catch (ex) {
@@ -132,15 +132,38 @@ require(["esri/views/View", "esri/libs/amcharts4/index"], function (
     for (var res of resourceTypes) {
       data[0][res.type] = 0;
     }
+    const maincontainer = document.createElement("div");
+    maincontainer.setAttribute("style", "margin-right: 0px; font-family: 'Avenir Next W00','Helvetica Neue',Helvetica,Arial,sans-serif;");
+
+    // create progressbar
+    const progressbar = document.createElement("div");
+    progressbar.setAttribute(
+      "style",
+      "position: absolute;width: 100%;margin-right: 0px;height: 5px;background-color: #0079c1;visibility: visible;transition: width 0.3s linear;"
+    );
+    maincontainer.appendChild(progressbar);
+
     const container = document.createElement("div");
-    container.setAttribute("style", "background-color: white;padding: 1em;");
-    const title = document.createElement("h3");
-    title.innerHTML = "Memory";
+    container.setAttribute(
+      "style",
+      "background-color: rgba(255, 255, 255, 0.9);padding: 3px;"
+    );
+
+    // add memory titel
+    const title = document.createElement("h4");
+    title.innerHTML = "Memory - Quality";
     container.appendChild(title);
+
+    // add chartcontaines
     const chartContainer = document.createElement("div");
     chartContainer.setAttribute("style", "max-height: 100px;");
     container.appendChild(chartContainer);
-    viewGlobal.ui.add(container, "bottom-left");
+
+    maincontainer.appendChild(container);
+
+    // add to the ui
+    viewGlobal.ui.add(maincontainer, "bottom-left");
+
     const chart = am4core.create(chartContainer, am4charts.XYChart);
     chart.data = data;
     var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
@@ -164,7 +187,9 @@ require(["esri/views/View", "esri/libs/amcharts4/index"], function (
 
     const updateStatTimeoutTrigger = () => {
       const stats = viewGlobal.performanceInfo;
-      updateMemoryTitle(stats.usedMemory, stats.totalMemory);
+      console.log(stats)
+      updateProgressbar(stats.load);
+      updateMemoryTitle(stats.usedMemory, stats.totalMemory, stats.quality);
       updateData(stats);
       updateTable(stats);
       setTimeout(updateStatTimeoutTrigger, 1000);
@@ -193,8 +218,13 @@ require(["esri/views/View", "esri/libs/amcharts4/index"], function (
       chart.invalidateRawData();
     }
 
-    function updateMemoryTitle(used, total) {
-      title.innerHTML = `Memory: ${getMB(used)}MB/${getMB(total)}MB`;
+    function updateProgressbar(load) {
+        console.log(Math.min(10*load, 100));
+        progressbar.style.width = Math.min(10*load, 100) + "%";
+    }
+
+    function updateMemoryTitle(used, total, quality) {
+      title.innerHTML = `Memory: ${getMB(used)}MB/${getMB(total)}MB  -  Quality: ${Math.round(100*quality)} %`;
     }
 
     function updateTable(stats) {
