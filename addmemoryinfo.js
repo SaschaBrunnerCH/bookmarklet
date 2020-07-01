@@ -133,7 +133,10 @@ require(["esri/views/View", "esri/libs/amcharts4/index"], function (
       data[0][res.type] = 0;
     }
     const maincontainer = document.createElement("div");
-    maincontainer.setAttribute("style", "margin-right: 0px; font-family: 'Avenir Next W00','Helvetica Neue',Helvetica,Arial,sans-serif;");
+    maincontainer.setAttribute(
+      "style",
+      "margin-right: 0px; font-family: 'Avenir Next W00','Helvetica Neue',Helvetica,Arial,sans-serif;"
+    );
 
     // create progressbar
     const progressbar = document.createElement("div");
@@ -150,13 +153,17 @@ require(["esri/views/View", "esri/libs/amcharts4/index"], function (
     );
 
     // add memory titel
-    const title = document.createElement("h4");
+    const title = document.createElement("div");
+    title.setAttribute(
+      "style",
+      "font-size:16px;font-weight:bold;padding: 10px"
+    );
     title.innerHTML = "Memory - Quality";
     container.appendChild(title);
 
     // add chartcontaines
     const chartContainer = document.createElement("div");
-    chartContainer.setAttribute("style", "max-height: 100px;");
+    chartContainer.setAttribute("style", "max-height: 80px");
     container.appendChild(chartContainer);
 
     maincontainer.appendChild(container);
@@ -177,9 +184,19 @@ require(["esri/views/View", "esri/libs/amcharts4/index"], function (
       return text + "MB";
     });
 
-    const tableContainer = document.createElement("table");
-    tableContainer.setAttribute("style", "border-collapse:collapse;");
-    container.append(tableContainer);
+    const tableMemoryContainer = document.createElement("table");
+    tableMemoryContainer.setAttribute(
+      "style",
+      "border-collapse:collapse;margin: 10px"
+    );
+    container.append(tableMemoryContainer);
+
+    const tableCountContainer = document.createElement("table");
+    tableCountContainer.setAttribute(
+      "style",
+      "border-collapse:collapse;margin: 10px"
+    );
+    container.append(tableCountContainer);
 
     resourceTypes.forEach(function (resource) {
       createSeries(resource);
@@ -187,7 +204,7 @@ require(["esri/views/View", "esri/libs/amcharts4/index"], function (
 
     const updateStatTimeoutTrigger = () => {
       const stats = viewGlobal.performanceInfo;
-      console.log(stats)
+      //console.log(stats)
       updateProgressbar(stats.load);
       updateMemoryTitle(stats.usedMemory, stats.totalMemory, stats.quality);
       updateData(stats);
@@ -215,25 +232,25 @@ require(["esri/views/View", "esri/libs/amcharts4/index"], function (
         chart.data[0][res.type] = agStats[res.type];
       }
       valueAxis.max = getMB(newStats.totalMemory);
+      console.log(chart.data);
       chart.invalidateRawData();
     }
 
     function updateProgressbar(load) {
-        console.log(Math.min(10*load, 100));
-        progressbar.style.width = Math.min(10*load, 100) + "%";
+      progressbar.style.width = Math.min(10 * load, 100) + "%";
     }
 
     function updateMemoryTitle(used, total, quality) {
-      title.innerHTML = `Memory: ${getMB(used)}MB/${getMB(total)}MB  -  Quality: ${Math.round(100*quality)} %`;
+      title.innerHTML = `Memory: ${getMB(used)}MB/${getMB(
+        total
+      )}MB  -  Quality: ${Math.round(100 * quality)} %`;
     }
 
     function updateTable(stats) {
       const agStats = getAggregatedStats(stats);
-      tableContainer.innerHTML = `<tr>
+      tableMemoryContainer.innerHTML = `<tr>
         <th>Layer</th>
         <th style="text-align:center;padding: 0 4px;">Memory<br>(MB)</th>
-        <th style="text-align:center;padding: 0 4px;">Displayed<br>Features<br>(count)</th>
-        <th style="text-align:center;padding: 0 4px;">Total<br>Features<br>(count)</th>
       </tr>`;
       for (res of resourceTypes) {
         if (typeof agStats[res.type] !== "undefined") {
@@ -241,8 +258,8 @@ require(["esri/views/View", "esri/libs/amcharts4/index"], function (
           row.setAttribute("style", "background-color:" + res.color.hex);
           row.innerHTML = `<td>${res.name}</td><td style="text-align:center">${
             agStats[res.type]
-          }</td><td></td><td></td>`;
-          tableContainer.appendChild(row);
+          }</td>`;
+          tableMemoryContainer.appendChild(row);
           for (let key in stats.layerPerformanceInfos) {
             const layerInfo = stats.layerPerformanceInfos[key];
             if (layerInfo.layer.type === res.type) {
@@ -257,17 +274,45 @@ require(["esri/views/View", "esri/libs/amcharts4/index"], function (
               }</td><td style="text-align:center">${getMB(
                 layerInfo.memory
               )}</td>`;
-              row.innerHTML += `<td style="text-align:center">${
-                layerInfo.displayedNumberOfFeatures
-                  ? layerInfo.displayedNumberOfFeatures
-                  : "-"
-              }</td>`;
-              row.innerHTML += `<td style="text-align:center">${
-                layerInfo.totalNumberOfFeatures
-                  ? layerInfo.totalNumberOfFeatures
-                  : "-"
-              }</td>`;
-              tableContainer.appendChild(row);
+              tableMemoryContainer.appendChild(row);
+            }
+          }
+        }
+      }
+      tableCountContainer.innerHTML = `<tr>
+        <th>Layer - Features</th>
+        <th style="text-align:center;padding: 0 4px;">Displayed / Max<br>(count)</th>
+        <th style="text-align:center;padding: 0 4px;">Total<br>(count)</th>
+      </tr>`;
+      for (res of resourceTypes) {
+        if (typeof agStats[res.type] !== "undefined") {
+          for (let key in stats.layerPerformanceInfos) {
+            const layerInfo = stats.layerPerformanceInfos[key];
+            if (layerInfo.layer.type === res.type) {
+              if (layerInfo.maximumNumberOfFeatures) {
+                const row = document.createElement("tr");
+                const color = res.color.rgb;
+                row.setAttribute(
+                  "style",
+                  `background-color:rgba(${color.r},${color.g},${color.b},0.2)`
+                );
+                row.innerHTML = `<td>${layerInfo.layer.title}`;
+                row.innerHTML += `<td style="text-align:center">${
+                  layerInfo.displayedNumberOfFeatures
+                    ? layerInfo.displayedNumberOfFeatures
+                    : "-"
+                } / ${
+                    layerInfo.maximumNumberOfFeatures
+                      ? layerInfo.maximumNumberOfFeatures
+                      : "-"
+                  }</td>`;
+                row.innerHTML += `<td style="text-align:center">${
+                  layerInfo.totalNumberOfFeatures
+                    ? layerInfo.totalNumberOfFeatures
+                    : "-"
+                }</td>`;
+                tableCountContainer.appendChild(row);
+              }
             }
           }
         }
